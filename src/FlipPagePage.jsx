@@ -28,7 +28,7 @@ FlipPagePage.propTypes = {
 };
 
 FlipPagePage.defaultProps = {
-  children: null,
+  children: <></>,
   style: {},
 };
 
