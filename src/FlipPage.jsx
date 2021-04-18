@@ -21,6 +21,7 @@ class FlipPage extends React.Component {
       shouldGoNext: false,
       shouldGoPrevious: false,
       direction: '',
+      isAnimating: false,
     };
 
     this.firstHalves = [];
@@ -42,8 +43,10 @@ class FlipPage extends React.Component {
   }
 
   handlePanResponderMove(e, gestureState) {
+    const { isAnimating, direction, angle: currentAngle } = this.state;
+    if (isAnimating) return;
+
     const { dx, dy } = gestureState;
-    const { direction } = this.state;
     const { orientation, loopForever, reverse } = this.props;
     const dn = orientation === 'vertical' ? dy : dx;
 
@@ -62,23 +65,18 @@ class FlipPage extends React.Component {
       } else if (dn > 0 && direction === '') {
         nextDirection = orientation === 'vertical' ? 'bottom' : 'right';
       }
-      this.setState({ direction: nextDirection });
       if (dn < 0 && (nextDirection === 'top' || nextDirection === 'left')) {
         if (this.isOnFirstPage() && !loopForever) {
           angle = Math.max(angle, -30);
         }
         this.rotateSecondHalf(angle);
-        this.setState({
-          angle,
-        });
       } else if (dn > 0 && (nextDirection === 'bottom' || nextDirection === 'right')) {
         if (this.isOnLastPage() && !loopForever) {
           angle = Math.min(angle, 30);
         }
         this.rotateFirstHalf(angle);
-        this.setState({
-          angle,
-        });
+      } else {
+        angle = currentAngle;
       }
     } else {
       if (dn < 0 && direction === '') {
@@ -86,30 +84,34 @@ class FlipPage extends React.Component {
       } else if (dn > 0 && direction === '') {
         nextDirection = orientation === 'vertical' ? 'bottom' : 'right';
       }
-      this.setState({ direction: nextDirection });
       if (dn < 0 && (nextDirection === 'top' || nextDirection === 'left')) {
         if (this.isOnLastPage() && !loopForever) {
           angle = Math.max(angle, -30);
         }
         this.rotateSecondHalf(angle);
-        this.setState({
-          angle,
-        });
       } else if (dn > 0 && (nextDirection === 'bottom' || nextDirection === 'right')) {
         if (this.isOnFirstPage() && !loopForever) {
           angle = Math.min(angle, 30);
         }
         this.rotateFirstHalf(angle);
-        this.setState({
-          angle,
-        });
+      } else {
+        angle = currentAngle;
       }
+
+      this.setState({
+        direction: nextDirection,
+        angle,
+      });
     }
   }
 
-  handlePanResponderStop(e, gestureState) {
+  handlePanResponderStop(_e, gestureState) {
+    const {
+      angle, page, direction, isAnimating,
+    } = this.state;
+    if (isAnimating) return;
+
     const { dx, dy } = gestureState;
-    const { angle, page, direction } = this.state;
     const { orientation, reverse, children } = this.props;
     const dn = orientation === 'vertical' ? dy : dx;
     const absAngle = Math.abs(angle);
@@ -120,17 +122,20 @@ class FlipPage extends React.Component {
         onPress();
       }
     }
-    if (reverse) {
-      this.setState({
-        shouldGoNext: absAngle > 90 && (direction === 'top' || direction === 'right'),
-        shouldGoPrevious: absAngle > 90 && (direction === 'bottom' || direction === 'left'),
-      }, this.resetHalves);
-    } else {
-      this.setState({
-        shouldGoNext: absAngle > 90 && (direction === 'top' || direction === 'left'),
-        shouldGoPrevious: absAngle > 90 && (direction === 'bottom' || direction === 'right'),
-      }, this.resetHalves);
-    }
+
+    const shouldGoNext = (reverse)
+      ? absAngle > 90 && (direction === 'top' || direction === 'right')
+      : absAngle > 90 && (direction === 'top' || direction === 'left');
+
+    const shouldGoPrevious = (reverse)
+      ? absAngle > 90 && (direction === 'bottom' || direction === 'left')
+      : absAngle > 90 && (direction === 'bottom' || direction === 'right');
+
+    this.setState({
+      isAnimating: true,
+      shouldGoNext,
+      shouldGoPrevious,
+    }, this.resetHalves);
   }
 
   onLayout(e) {
@@ -142,6 +147,22 @@ class FlipPage extends React.Component {
     this.setState({
       halfHeight,
       halfWidth,
+    });
+  }
+
+  setCurrentPage(targetPage) {
+    const { page } = this.state;
+    const firstHalf = this.firstHalves[page];
+    const secondHalf = this.secondHalves[page];
+    this.setState({
+      angle: 0,
+      page: targetPage,
+    }, () => {
+      const direction = (targetPage > page) ? 'next' : 'prev';
+      const { onPageChange } = this.props;
+      onPageChange(targetPage, direction);
+      firstHalf.setNativeProps({ transform: [] });
+      secondHalf.setNativeProps({ transform: [] });
     });
   }
 
@@ -218,7 +239,7 @@ class FlipPage extends React.Component {
     const finish = () => {
       const { onFinish } = this.props;
       const { direction: directionState } = this.state;
-      this.setState({ direction: '' });
+      this.setState({ direction: '', isAnimating: false });
 
       if (shouldGoNext) {
         this.setCurrentPage(loopForever && this.isOnLastPage() ? 0 : page + 1);
@@ -281,22 +302,6 @@ class FlipPage extends React.Component {
         finish();
       }
     }, 10);
-  }
-
-  setCurrentPage(targetPage) {
-    const { page } = this.state;
-    const firstHalf = this.firstHalves[page];
-    const secondHalf = this.secondHalves[page];
-    this.setState({
-      angle: 0,
-      page: targetPage,
-    }, () => {
-      const direction = (targetPage > page) ? 'next' : 'prev';
-      const { onPageChange } = this.props;
-      onPageChange(targetPage, direction);
-      firstHalf.setNativeProps({ transform: [] });
-      secondHalf.setNativeProps({ transform: [] });
-    });
   }
 
   renderVerticalPage(previousPage, thisPage, nextPage, index) {
