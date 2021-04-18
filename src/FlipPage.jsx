@@ -338,7 +338,6 @@ class FlipPage extends React.Component {
     const {
       angle,
       page,
-      halfHeight,
       halfWidth,
       direction,
     } = this.state;
@@ -354,7 +353,6 @@ class FlipPage extends React.Component {
     return renderHorizontalPage(
       absAngle,
       page,
-      halfWidth,
       direction,
       width,
       secondHalfPull,
@@ -368,7 +366,9 @@ class FlipPage extends React.Component {
   }
 
   renderPage(component, index) {
-    const { children, orientation, loopForever ,reverse } = this.props;
+    const {
+      children, orientation, loopForever, reverse,
+    } = this.props;
     const pages = children.length;
 
     const thisPage = component;
@@ -384,9 +384,8 @@ class FlipPage extends React.Component {
     }
     if (orientation === 'vertical') {
       return this.renderVerticalPage(previousPage, thisPage, nextPage, index);
-    } else {
-      return this.renderHorizontalPage(previousPage, thisPage, nextPage, index);
     }
+    return this.renderHorizontalPage(previousPage, thisPage, nextPage, index);
   }
 
   render() {
@@ -400,11 +399,13 @@ class FlipPage extends React.Component {
         {...this.panResponder.panHandlers}
         onLayout={this.onLayout}
       >
-        {!!halfWidth && !!halfHeight && children.slice(from, to).map((component, index) => this.renderPage(component, from + index))}
+        {!!halfWidth && !!halfHeight && children.slice(from, to).map((component, index) => (
+          this.renderPage(component, from + index)
+        ))}
       </View>
     );
   }
-};
+}
 
 FlipPage.propTypes = {
   orientation: PropTypes.oneOf(['horizontal', 'vertical']),

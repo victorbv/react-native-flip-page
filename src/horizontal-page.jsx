@@ -4,7 +4,6 @@ import { View } from 'react-native';
 export default (
   absAngle,
   page,
-  halfWidth,
   direction,
   width,
   secondHalfPull,

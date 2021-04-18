@@ -20,7 +20,7 @@ class FlipPagePage extends React.PureComponent {
       </View>
     );
   }
-};
+}
 
 FlipPagePage.propTypes = {
   children: PropTypes.node,
