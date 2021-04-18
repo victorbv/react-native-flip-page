@@ -4,7 +4,6 @@ import { View } from 'react-native';
 export default (
   absAngle,
   page,
-  halfWidth,
   direction,
   width,
   secondHalfPull,
@@ -18,7 +17,7 @@ export default (
   <View
     style={[
       styles.page,
-      { zIndex: page === index ? 1 : -1} // Page should not be visible if not current.
+      { zIndex: page === index ? 1 : -1 }, // Page should not be visible if not current.
     ]}
     key={`page-${index}`}
   >
@@ -45,7 +44,7 @@ export default (
           styles.half,
           styles.horizontalHalf,
           styles.horizontalSecondHalf,
-          styles.under
+          styles.under,
         ]}
       >
         <View style={secondHalfPull}>
@@ -53,7 +52,7 @@ export default (
         </View>
         <View style={[
           styles.shadow,
-          { opacity: (180 - absAngle) / 180 }
+          { opacity: (180 - absAngle) / 180 },
         ]} />
       </View>
     </View>
@@ -68,7 +67,7 @@ export default (
           styles.half,
           styles.horizontalHalf,
           styles.horizontalFirstHalf,
-          styles.under
+          styles.under,
         ]}
       >
         <View style={width}>
@@ -76,7 +75,7 @@ export default (
         </View>
         <View style={[
           styles.shadow,
-          { opacity: (180 - absAngle) / 180 }
+          { opacity: (180 - absAngle) / 180 },
         ]} />
       </View>
       <View
@@ -84,7 +83,7 @@ export default (
           styles.half,
           styles.horizontalHalf,
           styles.horizontalSecondHalf,
-          styles.under
+          styles.under,
         ]}
       >
         <View style={secondHalfPull}>
@@ -118,7 +117,7 @@ export default (
         <View
           style={[
             styles.page,
-            { zIndex: absAngle > 90 && direction === 'right' ? 3 : 2}
+            { zIndex: absAngle > 90 && direction === 'right' ? 3 : 2 },
           ]}
           transform={[
             { rotateZ: '180deg' },

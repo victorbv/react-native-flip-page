@@ -4,7 +4,6 @@ import { View } from 'react-native';
 export default (
   absAngle,
   page,
-  halfHeight,
   direction,
   height,
   secondHalfPull,
@@ -16,7 +15,7 @@ export default (
   nextPage,
 ) => (
   <View
-    style={[styles.page, { zIndex: page === index ? 1 : -1}]}
+    style={[styles.page, { zIndex: page === index ? 1 : -1 }]}
     key={`page-${index}`}
   >
     {/* Previous & next pages shown underneath the current page */}
@@ -26,7 +25,7 @@ export default (
           styles.half,
           styles.verticalHalf,
           styles.verticalFirstHalf,
-          styles.under
+          styles.under,
         ]}
       >
         <View style={height}>
@@ -34,24 +33,26 @@ export default (
         </View>
         <View style={[
           styles.shadow,
-          { opacity: (180 - absAngle) / 180 }
-        ]} />
+          { opacity: (180 - absAngle) / 180 },
+        ]}
+        />
       </View>
       <View
         style={[
           styles.half,
           styles.verticalHalf,
           styles.verticalSecondHalf,
-          styles.under
+          styles.under,
         ]}
       >
         <View style={secondHalfPull}>
-           {nextPage}
+          { nextPage }
         </View>
         <View style={[
           styles.shadow,
-          { opacity: (180 - absAngle) / 180 }
-        ]} />
+          { opacity: (180 - absAngle) / 180 },
+        ]}
+        />
       </View>
     </View>
     {/* Current page */}
@@ -61,9 +62,9 @@ export default (
           styles.half,
           styles.verticalHalf,
           styles.verticalFirstHalf,
-          { zIndex: direction === 'bottom' ? 4 : 3 }
+          { zIndex: direction === 'bottom' ? 4 : 3 },
         ]}
-        ref={view => that.firstHalves[index] = view}
+        ref={(view) => that.firstHalves[index] = view}
       >
         <View
           style={[
@@ -76,7 +77,7 @@ export default (
         <View
           style={[
             styles.page,
-            { zIndex: absAngle > 90 && direction === 'bottom' ? 3 : 2}
+            { zIndex: absAngle > 90 && direction === 'bottom' ? 3 : 2 },
           ]}
           transform={[
             { rotateZ: '180deg' },
@@ -93,9 +94,9 @@ export default (
           styles.half,
           styles.verticalHalf,
           styles.verticalSecondHalf,
-          { zIndex: direction === 'top' ? 4 : 3 }
+          { zIndex: direction === 'top' ? 4 : 3 },
         ]}
-        ref={view => that.secondHalves[index] = view}
+        ref={(view) => that.secondHalves[index] = view}
       >
         <View style={styles.shadow} />
         <View
