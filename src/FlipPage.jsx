@@ -215,32 +215,15 @@ class FlipPage extends React.Component {
       page,
     } = this.state;
 
-    const firstHalf = this.firstHalves[page];
-    const secondHalf = this.secondHalves[page];
-
     const finish = () => {
       const { onFinish } = this.props;
       const { direction: directionState } = this.state;
       this.setState({ direction: '' });
 
       if (shouldGoNext) {
-        this.setState({
-          angle: 0,
-          page: loopForever && this.isOnLastPage() ? 0 : page + 1,
-        }, () => {
-          this.props.onPageChange(this.state.page, 'next');
-          firstHalf.setNativeProps({ transform: [] });
-          secondHalf.setNativeProps({ transform: [] });
-        });
+        this.setCurrentPage(loopForever && this.isOnLastPage() ? 0 : page + 1);
       } else if (shouldGoPrevious) {
-        this.setState({
-          angle: 0,
-          page: loopForever && this.isOnFirstPage() ? pages - 1 : page - 1,
-        }, () => {
-          this.props.onPageChange(this.state.page, 'prev');
-          firstHalf.setNativeProps({ transform: [] });
-          secondHalf.setNativeProps({ transform: [] });
-        });
+        this.setCurrentPage(loopForever && this.isOnFirstPage() ? pages - 1 : page - 1);
       } else if (typeof onFinish === 'function') {
         onFinish(directionState);
       }
@@ -298,6 +281,22 @@ class FlipPage extends React.Component {
         finish();
       }
     }, 10);
+  }
+
+  setCurrentPage(targetPage) {
+    const { page } = this.state;
+    const firstHalf = this.firstHalves[page];
+    const secondHalf = this.secondHalves[page];
+    this.setState({
+      angle: 0,
+      page: targetPage,
+    }, () => {
+      const direction = (targetPage > page) ? 'next' : 'prev';
+      const { onPageChange } = this.props;
+      onPageChange(targetPage, direction);
+      firstHalf.setNativeProps({ transform: [] });
+      secondHalf.setNativeProps({ transform: [] });
+    });
   }
 
   renderVerticalPage(previousPage, thisPage, nextPage, index) {
