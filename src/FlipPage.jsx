@@ -39,6 +39,12 @@ class FlipPage extends React.Component {
       },
       onPanResponderMove: this.handlePanResponderMove.bind(this),
       onPanResponderRelease: this.handlePanResponderStop.bind(this),
+      onPanResponderGrant: () => {
+        const { onSwipeStart } = this.props;
+        if (typeof onSwipeStart === 'function') {
+          onSwipeStart();
+        }
+      },
     });
   }
 
@@ -159,10 +165,13 @@ class FlipPage extends React.Component {
       page: targetPage,
     }, () => {
       const direction = (targetPage > page) ? 'next' : 'prev';
-      const { onPageChange } = this.props;
+      const { onPageChange, onSwipeStop } = this.props;
       onPageChange(targetPage, direction);
       firstHalf.setNativeProps({ transform: [] });
       secondHalf.setNativeProps({ transform: [] });
+      if (typeof onSwipeStop === 'function') {
+        onSwipeStop();
+      }
     });
   }
 
@@ -229,7 +238,7 @@ class FlipPage extends React.Component {
     const { loopForever, children } = this.props;
     const pages = children.length;
     const {
-      angle,
+      angle: currentAngle,
       direction,
       shouldGoNext,
       shouldGoPrevious,
@@ -237,7 +246,6 @@ class FlipPage extends React.Component {
     } = this.state;
 
     const finish = () => {
-      const { onFinish } = this.props;
       const { direction: directionState } = this.state;
       this.setState({ direction: '', isAnimating: false });
 
@@ -245,21 +253,27 @@ class FlipPage extends React.Component {
         this.setCurrentPage(loopForever && this.isOnLastPage() ? 0 : page + 1);
       } else if (shouldGoPrevious) {
         this.setCurrentPage(loopForever && this.isOnFirstPage() ? pages - 1 : page - 1);
-      } else if (typeof onFinish === 'function') {
-        onFinish(directionState);
+      } else {
+        const { onFinish, onSwipeStop } = this.props;
+        if (typeof onSwipeStop === 'function') {
+          onSwipeStop();
+        }
+        if (typeof onFinish === 'function') {
+          onFinish(directionState);
+        }
       }
     };
 
     // Already swiped all the way
-    if (Math.abs(angle) === 180) {
+    if (Math.abs(currentAngle) === 180) {
       finish();
       return;
     }
 
     let targetAngle;
-    if (angle < -90) {
+    if (currentAngle < -90) {
       targetAngle = -180;
-    } else if (angle > 90) {
+    } else if (currentAngle > 90) {
       targetAngle = 180;
     } else {
       targetAngle = 0;
@@ -267,8 +281,9 @@ class FlipPage extends React.Component {
 
     this.resetTimer = setInterval(() => {
       let { angle } = this.state;
+      const da = 15;
 
-      angle += angle < targetAngle ? 5 : -5;
+      angle += angle < targetAngle ? da : -da;
 
       if (angle < 0) {
         angle = Math.max(angle, -180);
@@ -287,9 +302,9 @@ class FlipPage extends React.Component {
       this.setState({ angle });
 
       if (
-        (targetAngle < 0 && angle <= targetAngle) || // Flip second half to top
-        (targetAngle === 0 && Math.abs(angle) <= 5) ||
-        (targetAngle > 0 && angle >= targetAngle) // Flip first half to bottom
+        (targetAngle < 0 && angle <= targetAngle) // Flip second half to top
+        || (targetAngle === 0 && Math.abs(angle) <= da)
+        || (targetAngle > 0 && angle >= targetAngle) // Flip first half to bottom
       ) {
         clearInterval(this.resetTimer);
 
@@ -301,7 +316,7 @@ class FlipPage extends React.Component {
 
         finish();
       }
-    }, 10);
+    }, 30);
   }
 
   renderVerticalPage(previousPage, thisPage, nextPage, index) {
@@ -319,8 +334,6 @@ class FlipPage extends React.Component {
     const secondHalfPull = {
       marginTop: -halfHeight,
     };
-
-    const setViewCallback = (view) => this.firstHalves[index] = view;
 
     return renderVerticalPage(
       absAngle,
@@ -416,6 +429,8 @@ FlipPage.propTypes = {
   loopForever: PropTypes.bool,
   onFinish: PropTypes.func,
   onPageChange: PropTypes.func,
+  onSwipeStart: PropTypes.func,
+  onSwipeStop: PropTypes.func,
   reverse: PropTypes.bool,
   children: PropTypes.node,
 };
@@ -425,6 +440,8 @@ FlipPage.defaultProps = {
   loopForever: false,
   onFinish: null,
   onPageChange: () => {},
+  onSwipeStart: null,
+  onSwipeStop: null,
   reverse: false,
   children: <></>,
 };
