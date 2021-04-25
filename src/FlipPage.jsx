@@ -22,6 +22,7 @@ class FlipPage extends React.Component {
       shouldGoPrevious: false,
       direction: '',
       isAnimating: false,
+      isAutoTurning: false,
     };
 
     this.firstHalves = [];
@@ -175,6 +176,48 @@ class FlipPage extends React.Component {
     });
   }
 
+  /* Public call to next page */
+  goToNextPage() {
+    const { isAnimating } = this.state;
+    if (isAnimating || this.isOnLastPage()) return;
+
+    const { onSwipeStart, orientation } = this.props;
+    onSwipeStart();
+
+    const angle = -11;
+    this.rotateSecondHalf(angle);
+
+    this.setState({
+      angle,
+      direction: orientation === 'vertical' ? 'top' : 'left',
+      isAnimating: true,
+      shouldGoNext: true,
+      shouldGoPrevious: false,
+      isAutoTurning: true,
+    }, this.resetHalves);
+  }
+
+  /* Public call to previous page */
+  goToPreviousPage() {
+    const { isAnimating } = this.state;
+    if (isAnimating || this.isOnFirstPage()) return;
+
+    const { onSwipeStart, orientation } = this.props;
+    onSwipeStart();
+
+    const angle = 11;
+    this.rotateFirstHalf(angle);
+
+    this.setState({
+      angle,
+      direction: orientation === 'vertical' ? 'bottom' : 'right',
+      isAnimating: true,
+      shouldGoNext: false,
+      shouldGoPrevious: true,
+      isAutoTurning: true,
+    }, this.resetHalves);
+  }
+
   lastPage() {
     const { children } = this.props;
     return children.length - 1;
@@ -243,11 +286,12 @@ class FlipPage extends React.Component {
       shouldGoNext,
       shouldGoPrevious,
       page,
+      isAutoTurning,
     } = this.state;
 
     const finish = () => {
       const { direction: directionState } = this.state;
-      this.setState({ direction: '', isAnimating: false });
+      this.setState({ direction: '', isAnimating: false, isAutoTurning: false });
 
       if (shouldGoNext) {
         this.setCurrentPage(loopForever && this.isOnLastPage() ? 0 : page + 1);
@@ -271,9 +315,9 @@ class FlipPage extends React.Component {
     }
 
     let targetAngle;
-    if (currentAngle < -90) {
+    if (currentAngle < -90 || (isAutoTurning && shouldGoNext)) {
       targetAngle = -180;
-    } else if (currentAngle > 90) {
+    } else if (currentAngle > 90 || (isAutoTurning && shouldGoPrevious)) {
       targetAngle = 180;
     } else {
       targetAngle = 0;
@@ -281,7 +325,9 @@ class FlipPage extends React.Component {
 
     this.resetTimer = setInterval(() => {
       let { angle } = this.state;
-      const da = 15;
+      const { isAutoTurning: autoTurning } = this.state;
+
+      const da = autoTurning ? 30 : 15;
 
       angle += angle < targetAngle ? da : -da;
 
