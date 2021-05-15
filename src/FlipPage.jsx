@@ -1,7 +1,6 @@
 import React from 'react';
 import {
-  PanResponder,
-  View,
+  PanResponder, View,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './styles';
@@ -432,6 +431,7 @@ class FlipPage extends React.Component {
     const {
       children, orientation, loopForever, reverse,
     } = this.props;
+
     const pages = children.length;
 
     const thisPage = component;
@@ -452,14 +452,17 @@ class FlipPage extends React.Component {
   }
 
   render() {
-    const { children } = this.props;
+    const { children, isVisible, swipeEnabled } = this.props;
+    if (!isVisible) return null;
+
     const { page, halfWidth, halfHeight } = this.state;
     const from = page > 0 ? page - 1 : 0;
     const to = from + 3;
+    const panHandlers = swipeEnabled ? this.panResponder.panHandlers : {};
     return (
       <View
-        style={styles.container}
-        {...this.panResponder.panHandlers}
+        style={[styles.container]}
+        {...panHandlers}
         onLayout={this.onLayout}
       >
         {!!halfWidth && !!halfHeight && children.slice(from, to).map((component, index) => (
@@ -479,6 +482,8 @@ FlipPage.propTypes = {
   onSwipeStop: PropTypes.func,
   reverse: PropTypes.bool,
   children: PropTypes.node,
+  isVisible: PropTypes.bool,
+  swipeEnabled: PropTypes.bool,
 };
 
 FlipPage.defaultProps = {
@@ -490,6 +495,8 @@ FlipPage.defaultProps = {
   onSwipeStop: null,
   reverse: false,
   children: <></>,
+  isVisible: true,
+  swipeEnabled: true,
 };
 
 export default FlipPage;
