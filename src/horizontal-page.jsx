@@ -2,18 +2,19 @@ import React from 'react';
 import { View } from 'react-native';
 
 export default (
-  absAngle,
-  page,
-  direction,
-  width,
+  absAngle, // number
+  page, // number
+  direction, // string
+  width, // number
   secondHalfPull,
   styles,
-  index,
+  index, // number
   that,
   previousPage,
   thisPage,
   nextPage,
 ) => {
+  // performance - hide pages not participating of the flip
   if (page !== index && page !== index - 1 && page !== index + 1) return null;
 
   return (
@@ -41,6 +42,10 @@ export default (
           <View style={width}>
             {thisPage}
           </View>
+          <View style={[
+            styles.shadow,
+            { opacity: absAngle > 90 ? (absAngle - 90) / 90 : 0 },
+          ]} />
         </View>
         <View
           style={[
