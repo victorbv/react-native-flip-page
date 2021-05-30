@@ -326,7 +326,7 @@ class FlipPage extends React.Component {
       let { angle } = this.state;
       const { isAutoTurning: autoTurning } = this.state;
 
-      const da = autoTurning ? 30 : 15;
+      const da = autoTurning ? 10 : 15;
 
       angle += angle < targetAngle ? da : -da;
 
